@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Meeting Room</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <div id="video-grid"></div>
+    <div class="controls">
+        <button id="toggle-cam" class="active">Toggle Cam</button>
+        <button id="toggle-mic" class="active">Toggle Mic</button>
+        <button id="toggle-share-screen" class="inactive">Ch.sẻ màn hình</button>
+        <button id="leave-room" class="inactive">Leave Room</button>
+    </div>
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="client.js"></script>
+    <!-- <script src="client-old-2.js"></script> -->
+</body>
+
+</html>

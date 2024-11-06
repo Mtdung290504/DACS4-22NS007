@@ -1,0 +1,113 @@
+* {
+    box-sizing: border-box;
+}
+
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    height: 100vh;
+    background-color: #f5f5f5;
+    padding: 0;
+    background-color: #333;
+    padding: 10px 10%;
+}
+
+#video-grid {
+    display: grid;
+    gap: 10px;
+    width: 100%;
+    max-width: 1200px;
+    padding: 10px;
+}
+
+#video-grid>video {
+    object-fit: cover;
+    aspect-ratio: 4.5/3;
+    border: 2px solid deepskyblue;
+}
+
+/* Fixed Controls */
+.controls {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    padding: 15px;
+    background-color: rgba(0, 0, 0, 0.8);
+}
+
+.controls button {
+    padding: 10px 20px;
+    font-size: 16px;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.controls button:disabled {
+    background-color: #888;
+    cursor: not-allowed;
+}
+
+.controls button.active {
+    background-color: #28a745;
+    /* Color for active state */
+}
+
+.controls button.inactive {
+    background-color: #ce462d;
+    /* Color for active state */
+}
+
+/* Layout for desktop */
+@media (min-width: 768px) {
+    #video-grid {
+        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+        grid-auto-rows: 190px;
+        grid-auto-flow: dense;
+    }
+}
+
+/* Layout for mobile */
+@media (max-width: 767px) {
+    body {
+        padding: 5px 0;
+    }
+
+    #video-grid {
+        grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+        gap: 4px;
+        grid-auto-rows: 120px;
+        grid-auto-flow: dense;
+    }
+}
+
+video {
+    width: 100%;
+    height: auto;
+    background: #000;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.controls {
+    margin-top: 15px;
+    display: flex;
+    gap: 10px;
+}
+
+.controls button {
+    padding: 10px 15px;
+    font-size: 12px;
+    color: white;
+    background-color: #007bff;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}

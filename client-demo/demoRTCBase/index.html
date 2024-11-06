@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="stylesheet" href="./style.css">
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="app.js" defer></script>
+</head>
+
+<body>
+    <div id="video-grid" class="debug">
+        <div class="video-wrapper">
+            <video src=""></video>
+        </div>
+        <div class="video-wrapper">
+            <video src=""></video>
+        </div>
+        <div class="video-wrapper">
+            <video src=""></video>
+        </div>
+        <div class="video-wrapper">
+            <video src=""></video>
+        </div>
+        <div class="video-wrapper">
+            <video src=""></video>
+        </div>
+    </div>
+
+    <div id="controls">
+        <button id="toggle-mic-button" class="control-button"></button>
+        <button id="toggle-cam-button" class="control-button"></button>
+        <button id="leave-button" class="control-button"></button>
+    </div>
+</body>
+
+</html>

@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WebRTC Video Chat</title>
+</head>
+
+<body>
+    <h1>WebRTC Video Chat</h1>
+
+    <!-- Thẻ video để hiển thị video local và remote -->
+    <video id="localVideo" autoplay muted playsinline style="width: 50%;"></video>
+    <video id="remoteVideo" autoplay playsinline style="width: 50%;"></video>
+
+    <!-- Nút điều khiển mic và camera -->
+    <div>
+        <button id="toggleMic">Tắt Mic</button>
+        <button id="toggleCamera">Tắt Camera</button>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="main.js"></script>
+</body>
+
+</html>
