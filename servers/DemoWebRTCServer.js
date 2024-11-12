@@ -47,18 +47,18 @@ class MeetingServer {
                 socket.joinedRoom = roomId;
 
                 // Xử lý khi có offer từ peer
-                socket.on('offer', (targetId, offer) => {
-                    socket.to(targetId).emit('offer', socket.id, offer);
+                socket.on('offer', (targetId, offer, type) => {
+                    socket.to(targetId).emit('offer', socket.id, offer, type);
                 });
 
                 // Xử lý khi có answer từ peer
-                socket.on('answer', (targetId, answer) => {
-                    socket.to(targetId).emit('answer', socket.id, answer);
+                socket.on('answer', (targetId, answer, type) => {
+                    socket.to(targetId).emit('answer', socket.id, answer, type);
                 });
 
                 // Xử lý khi có ICE candidate từ peer
-                socket.on('candidate', (targetId, candidate) => {
-                    socket.to(targetId).emit('candidate', socket.id, candidate);
+                socket.on('candidate', (targetId, candidate, type) => {
+                    socket.to(targetId).emit('candidate', socket.id, candidate, type);
                 });
 
                 // Khi người dùng rời khỏi room

@@ -12,7 +12,7 @@ export default class AbstractDatabase {
     /**
      * @template {typeof AbstractDatabase} T - Class kế thừa từ AbstractDatabase
      * @param {T} ImplDatabaseClass - Một class kế thừa từ AbstractDatabase
-     * @returns {AbstractDatabase} Instance của lớp kế thừa nhưng ép kiểu thành `AbstractDatabase` để chỉ gợi ý abstract method
+     * @returns {T['prototype']} Instance của lớp kế thừa
      */
     static createImplDatabase(ImplDatabaseClass) {
         if (!(ImplDatabaseClass.prototype instanceof AbstractDatabase)) {

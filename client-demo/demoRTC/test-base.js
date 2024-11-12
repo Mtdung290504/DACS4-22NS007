@@ -9,11 +9,31 @@ myVideo.muted = true;  // Tắt tiếng video của chính mình
  */
 let myVideoStream;
 
+let dumpTrack = (() => {
+    const canvas = document.createElement("canvas");
+    canvas.width = 1;
+    canvas.height = 1;
+    
+    const context = canvas.getContext("2d");
+    context.fillStyle = "black";
+    context.fillRect(0, 0, 1, 1); // Tô màu để tạo hình ảnh nhỏ
+    
+    return canvas.captureStream().getVideoTracks()[0];
+})();
+
+let screenTrack = null;
+
 /**
- * Lưu trữ các kết nối WebRTC của các peer
+ * Lưu trữ các RTCPeerConnection của các peer
  * @type {{[socketId: string]: RTCPeerConnection}} 
  */
 let peerConnections = {};
+
+/**
+ * Lưu trữ các RTCDataChannel của các peer
+ * @type {{[socketId: string]: RTCDataChannel}}
+ */
+let dataChannels = {};
 
 const roomId = window.location.pathname.split('/')[2];  // Lấy roomId từ URL
 
@@ -49,36 +69,53 @@ navigator.mediaDevices.getUserMedia({
     handleSignalingEvents();
 });
 
-// Kết nối với người dùng mới qua WebRTC
 function connectToNewUser(userId, stream) {
     const peer = new RTCPeerConnection();
     peerConnections[userId] = peer;
 
-    // Gửi các track của stream (video & audio) vào kết nối
+    // Tạo data channel để gửi và nhận sự kiện chia sẻ màn hình
+    const dataChannel = peer.createDataChannel("screenShareChannel");
+    dataChannel.onmessage = handleScreenShareMessage;
+    dataChannels[userId] = dataChannel;
+
+    // Thêm track giả để dùng cho chia sẻ màn hình
+    peer.addTrack(dumpTrack, myVideoStream);
+    // Thêm tất cả các track của stream (camera) vào kết nối
     stream.getTracks().forEach(track => peer.addTrack(track, stream));
 
-    // Khi nhận được track của peer khác (stream từ người khác)
-    peer.ontrack = event => {
-        if (!document.getElementById(`video-${userId}`)) { // Kiểm tra xem video đã tồn tại chưa
-            const video = document.createElement('video');
-            video.id = `video-${userId}`; // Thêm ID duy nhất cho video
-            addVideoStream(video, event.streams[0]);
-        }
-    };
+    // Khi nhận được track từ peer (camera hoặc màn hình)
+    peer.ontrack = onTrackCall.bind(userId);
 
-    // Xử lý khi có ICE candidate
     peer.onicecandidate = event => {
         if (event.candidate) {
-            socket.emit('candidate', userId, event.candidate);  // Gửi ICE candidate đến peer khác
+            socket.emit('candidate', userId, event.candidate);
         }
     };
 
     // Tạo offer để bắt đầu kết nối WebRTC
-    peer.createOffer()
-        .then(offer => {
-            peer.setLocalDescription(offer);
-            socket.emit('offer', userId, offer);  // Gửi offer đến peer khác
-        });
+    peer.createOffer().then(offer => {
+        peer.setLocalDescription(offer);
+        socket.emit('offer', userId, offer);
+    });
+}
+
+// Xử lý tin nhắn chia sẻ màn hình từ các peer
+function handleScreenShareMessage(event) {
+    const message = JSON.parse(event.data);
+    const { action, userId } = message;
+
+    if (action === 'startScreenShare') {
+        console.log(`${userId} đã bắt đầu chia sẻ màn hình`);
+        // Khi peer bắt đầu chia sẻ màn hình, tạo video cho màn hình
+        const video = document.createElement('video');
+        video.id = `screen-${userId}`;
+        video.autoplay = true;
+        document.body.append(video);
+    } else if (action === 'stopScreenShare') {
+        console.log(`${userId} đã dừng chia sẻ màn hình`);
+        // Khi peer dừng chia sẻ màn hình, xóa video màn hình
+        document.getElementById(`screen-${userId}`)?.remove();
+    }
 }
 
 // Hàm xử lý các sự kiện signaling từ các peer khác
@@ -93,13 +130,7 @@ function handleSignalingEvents() {
             myVideoStream.getTracks().forEach(track => peer.addTrack(track, myVideoStream));
 
             // Khi nhận được track của peer khác
-            peer.ontrack = event => {
-                if (!document.getElementById(`video-${fromId}`)) { // Kiểm tra xem video đã tồn tại chưa
-                    const video = document.createElement('video');
-                    video.id = `video-${fromId}`;
-                    addVideoStream(video, event.streams[0]);
-                }
-            };
+            peer.ontrack = onTrackCall.bind(fromId);
 
             peer.onicecandidate = event => {
                 if (event.candidate) {
@@ -111,11 +142,10 @@ function handleSignalingEvents() {
             peer.setRemoteDescription(new RTCSessionDescription(offer));
 
             // Tạo answer để gửi lại cho peer gửi offer
-            peer.createAnswer()
-                .then(answer => {
-                    peer.setLocalDescription(answer);
-                    socket.emit('answer', fromId, answer);  // Gửi answer đến peer khác
-                });
+            peer.createAnswer().then(answer => {
+                peer.setLocalDescription(answer);
+                socket.emit('answer', fromId, answer);  // Gửi answer đến peer khác
+            });
         }
     });
 
@@ -129,6 +159,31 @@ function handleSignalingEvents() {
         const iceCandidate = new RTCIceCandidate(candidate);
         peerConnections[fromId].addIceCandidate(iceCandidate);  // Thêm ICE candidate vào kết nối
     });
+}
+
+/**
+ * @param {RTCTrackEvent} event 
+ */
+/**
+ * @param {RTCTrackEvent} event 
+ */
+function onTrackCall(event) {
+    const userId = this;
+    const [remoteStream] = event.streams;
+    const isScreenTrack = event.track.label.includes("screen");
+
+    const videoId = isScreenTrack ? `screen-${userId}` : `video-${userId}`;
+    if (!document.getElementById(videoId)) {
+        const video = document.createElement('video');
+        video.id = videoId;
+        video.autoplay = true;
+        video.srcObject = remoteStream;
+        video.addEventListener('loadedmetadata', () => {
+            video.play();
+        });
+
+        videoGrid.append(video);  // Thêm video vào lưới giao diện
+    }
 }
 
 // Hàm thêm video stream vào lưới video
@@ -211,33 +266,57 @@ document.getElementById('leave-room').addEventListener('click', () => {
     window.location.href = '/';
 });
 
-// let screenStream;  // Để lưu stream chia sẻ màn hình
+// Hàm xử lý khi người dùng bật hoặc tắt chia sẻ màn hình
+async function toggleScreenShare() {
+    // Kiểm tra nếu chưa có track màn hình thì bắt đầu chia sẻ
+    if (!screenTrack) {
+        try {
+            const screenStream = await navigator.mediaDevices.getDisplayMedia({ video: true });
+            screenTrack = screenStream.getVideoTracks()[0];
 
-// document.getElementById('toggle-share-screen').addEventListener('click', async () => {
-//     if (!screenStream) {
-//         try {
-//             screenStream = await navigator.mediaDevices.getDisplayMedia({ video: true });
-//             screenStream.getVideoTracks()[0].onended = stopScreenSharing;
-//             // Thêm vào kết nối WebRTC và hiển thị
-//             replaceTrack(screenStream.getVideoTracks()[0]);
-//             addVideoStream(myVideo, screenStream); // Hiển thị video màn hình cho chính mình
-//         } catch (err) {
-//             console.error('Không thể chia sẻ màn hình:', err);
-//         }
-//     } else {
-//         stopScreenSharing();
-//     }
-// });
+            // Thay thế track giả bằng track màn hình trong mỗi kết nối
+            Object.values(peerConnections).forEach(peer => {
+                const sender = peer.getSenders().find(s => s.track === dumpTrack);
+                if (sender) {
+                    sender.replaceTrack(screenTrack);
+                }
+            });
 
-// function stopScreenSharing() {
-//     if (screenStream) {
-//         screenStream.getTracks().forEach(track => track.stop());
-//         screenStream = null;
+            // Khi track màn hình bị dừng (người dùng tắt chia sẻ)
+            screenTrack.onended = stopScreenShare;
 
-//         // Nếu camera vẫn hoạt động, thay thế màn hình bằng camera
-//         if (myVideoStream.getVideoTracks().length) {
-//             replaceTrack(myVideoStream.getVideoTracks()[0]);
-//             addVideoStream(myVideo, myVideoStream); // Trở lại video camera cho chính mình
-//         }
-//     }
-// }
+            // Gửi thông báo bắt đầu chia sẻ đến các peer
+            Object.values(dataChannels).forEach(channel => {
+                channel.send(JSON.stringify({ action: 'startScreenShare', userId: socket.id }));
+            });
+        } catch (error) {
+            console.error("Không thể chia sẻ màn hình:", error);
+        }
+    } else {
+        stopScreenShare(); // Nếu đang chia sẻ, dừng chia sẻ
+    }
+}
+
+// Hàm dừng chia sẻ màn hình
+function stopScreenShare() {
+    if (screenTrack) {
+        screenTrack.stop(); // Dừng track màn hình
+        screenTrack = null;
+
+        // Thay thế lại track màn hình bằng track giả
+        Object.values(peerConnections).forEach(peer => {
+            const sender = peer.getSenders().find(s => s.track.kind === 'video');
+            if (sender) {
+                sender.replaceTrack(dumpTrack);
+            }
+        });
+
+        // Thông báo đến các peer rằng đã dừng chia sẻ màn hình
+        Object.values(dataChannels).forEach(channel => {
+            channel.send(JSON.stringify({ action: 'stopScreenShare', userId: socket.id }));
+        });
+    }
+}
+
+// Thêm nút toggle-screen-share vào HTML của bạn
+document.getElementById('toggle-share-screen').addEventListener('click', toggleScreenShare);
