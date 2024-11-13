@@ -58,12 +58,17 @@ navigator.mediaDevices.getUserMedia({
 
 function connectToNewUser(userId, stream) {
     peerConnections[userId] = { 
-        camera: new RTCPeerConnection(),
-        screen: new RTCPeerConnection()
+        camera: new RTCPeerConnection({
+            "iceServers": [{ "urls": "stun:stun.1.google.com:19302" }]
+        }),
+        screen: new RTCPeerConnection({
+            "iceServers": [{ "urls": "stun:stun.1.google.com:19302" }]
+        })
     };
 
     // Kết nối camera
     stream.getTracks().forEach(track => peerConnections[userId].camera.addTrack(track, stream));
+    stream.getTracks().forEach(track => peerConnections[userId].screen.addTrack(track, stream));
     
     // Xử lý sự kiện ontrack của kết nối camera
     peerConnections[userId].camera.ontrack = event => onTrackCall(event, userId, false);
@@ -72,50 +77,64 @@ function connectToNewUser(userId, stream) {
     // Xử lý sự kiện ontrack của kết nối màn hình (screen)
     peerConnections[userId].screen.ontrack = event => onTrackCall(event, userId, true);
     setupPeerConnection(peerConnections[userId].screen, userId, "screen");
-}
 
-function setupPeerConnection(peer, userId, type) {
-    peer.onicecandidate = event => {
-        if (event.candidate) {
-            socket.emit('candidate', userId, event.candidate, type);
-        }
-    };
-
-    peer.createOffer().then(offer => {
-        peer.setLocalDescription(offer);
-        socket.emit('offer', userId, offer, type);
-    });
+    function setupPeerConnection(peer, userId, type) {
+        peer.onicecandidate = event => {
+            if (event.candidate) {
+                socket.emit('candidate', userId, event.candidate, type);
+            }
+        };
+    
+        peer.createOffer().then(offer => {
+            peer.setLocalDescription(offer);
+            socket.emit('offer', userId, offer, type);
+        });
+    }
 }
 
 // Xử lý các sự kiện signaling từ các peer khác
 function handleSignalingEvents() {
     socket.on('offer', (fromId, offer, type) => {
+        console.log('Offer', fromId, offer, type);
         if (!peerConnections[fromId]) {
-            peerConnections[fromId] = { 
-                camera: new RTCPeerConnection(),
-                screen: new RTCPeerConnection()
+            peerConnections[fromId] = {
+                camera: new RTCPeerConnection({
+                    "iceServers": [{ "urls": "stun:stun.1.google.com:19302" }]
+                }),
+                screen: new RTCPeerConnection({
+                    "iceServers": [{ "urls": "stun:stun.1.google.com:19302" }]
+                })
             };
+
+            const peer = peerConnections[fromId][type];
+            const isScreenTrack = type === 'screen';
+            const stream = isScreenTrack ? myVideoStream : screenStream
+
+            stream !== null && stream.getTracks().forEach(track => peer.addTrack(track, stream));
+            
+            peer.ontrack = event => onTrackCall(event, fromId, isScreenTrack);
+            peer.onicecandidate = event => {
+                console.log('Peer candidate', event.candidate);
+                if (event.candidate) {
+                    socket.emit('candidate', fromId, event.candidate, type);
+                }
+            };
+            peer.setRemoteDescription(new RTCSessionDescription(offer));
+            peer.createAnswer().then(answer => {
+                console.log('Peer answer', answer);
+                peer.setLocalDescription(answer);
+                socket.emit('answer', fromId, answer, type);
+            });            
         }
-        const peer = peerConnections[fromId][type];
-        
-        peer.ontrack = event => onTrackCall(event, fromId, type === "screen");
-        peer.onicecandidate = event => {
-            if (event.candidate) {
-                socket.emit('candidate', fromId, event.candidate, type);
-            }
-        };
-        peer.setRemoteDescription(new RTCSessionDescription(offer));
-        peer.createAnswer().then(answer => {
-            peer.setLocalDescription(answer);
-            socket.emit('answer', fromId, answer, type);
-        });
     });
 
     socket.on('answer', (fromId, answer, type) => {
+        console.log('Answer', fromId, answer, type);
         peerConnections[fromId][type].setRemoteDescription(new RTCSessionDescription(answer));
     });
 
     socket.on('candidate', (fromId, candidate, type) => {
+        console.log('Candidate', fromId, candidate, type);
         const iceCandidate = new RTCIceCandidate(candidate);
         peerConnections[fromId][type].addIceCandidate(iceCandidate);
     });
@@ -127,7 +146,10 @@ function handleSignalingEvents() {
  * @param {boolean} isScreenTrack 
  */
 function onTrackCall(event, userId, isScreenTrack) {
+    // alert('Ontrack');
     const videoId = isScreenTrack ? `screen-${userId}` : `video-${userId}`;
+    const streamType = isScreenTrack ? 'screen' : 'camera';
+    console.log(`Track received from user ${userId} for ${streamType}`);
     let video = document.getElementById(videoId);
 
     if (!video) {

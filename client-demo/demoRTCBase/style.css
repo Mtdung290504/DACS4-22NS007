@@ -10,19 +10,30 @@ html {
 
 body {
     background-color: #222;
+    height: 100dvh;
     padding: 10px 10%;
+    overflow: hidden;
+    transition: padding .3s;
 }
 
 .debug {
     border: 1.5px solid deepskyblue;
 }
 
+#video-grid-wrapper {
+    height: 100%;
+    overflow-y: auto;
+    transition: margin .3s;
+    padding: 2px;
+}
+
 #video-grid {
+    position: relative;
     display: grid;
-    gap: 1em;
+    gap: .4em;
     width: 100%;
-    height: 100dvh;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    height: fit-content;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
     grid-template-rows: min-content;
     padding: 5px;
 }
@@ -32,6 +43,15 @@ body {
     aspect-ratio: 16 / 9;
     border-radius: 5px;
     overflow: hidden;
+}
+
+.video-wrapper.pin {
+    position: absolute;
+    top: 0;
+    width: 100%;
+    border: 1px solid white;
+    padding: 1em;
+    z-index: 10;
 }
 
 .video-wrapper > video {
@@ -53,9 +73,10 @@ body {
     justify-content: center;
     width: 50%;
     background-color: #333;
-    border-radius: 10px;
+    /* border-radius: 5px; */
     padding: .5em;
-    box-shadow: 0px 0px 3px snow;
+    /* box-shadow: 0px 0px 3px snow; */
+    border-bottom: 2px solid white;
 }
 
 .control-button {
@@ -68,13 +89,21 @@ body {
     cursor: pointer;
     border-radius: 5px;
     background-color: #555;
-}
-
-#leave-button {
-    background-color: red;
+    position: relative;
+    display: grid;
+    place-items: center;
 }
 
 .control-button::after {
+    content: "";
+    width: 65%;
+    aspect-ratio: 1;
+    background-size: cover; /* Đảm bảo ảnh nền phủ kín */
+    background-position: center;
+    display: block;
+}
+
+.control-button::before {
     position: absolute;
     z-index: 1;
     width: 100%;
@@ -90,6 +119,96 @@ body {
     border-radius: 5px;
 }
 
-.control-button:active::after {
+.control-button:active::before {
     opacity: 1;
+}
+
+#leave-button {
+    background-color: red;
+}
+
+#leave-button::after {
+    background-image: url('assets/end_call.png');
+}
+
+#toggle-mic-button::after {
+    background-image: url('assets/mic.png');
+}
+#toggle-mic-button.active::after {
+    background-image: url('assets/mic_off.png');
+}
+
+#toggle-cam-button.control-button.blocked {
+    cursor: not-allowed;
+    background-color: #111;
+}
+#toggle-cam-button::after {
+    background-image: url('assets/cam.png');
+}
+#toggle-cam-button.active::after {
+    background-image: url('assets/cam_off.png');
+}
+
+#toggle-share-screen-button::after {
+    background-image: url('assets/screen_share.png');
+}
+#toggle-share-screen-button.active::after {
+    background-image: url('assets/stop_screen_share.png');
+}
+
+#toggle-chat-button::after {
+    background-image: url('assets/chat.png');
+}
+
+#toggle-attendees-button::after {
+    background-image: url('assets/attendees.png');
+}
+
+/* Panel chat bên phải */
+#chat-panel {
+    position: fixed;
+    right: 0;
+    top: 0;
+    width: 25vw; /* Độ rộng của panel */
+    height: 95dvh;
+    background-color: #333;
+    color: white;
+    padding: 1em;
+    transform: translateX(100%); /* Ẩn panel bên phải */
+    transition: transform 0.3s ease; /* Hiệu ứng trượt */
+    z-index: 110;
+    border-radius: 5px;
+    border: 1px solid white;
+    overflow-y: auto;
+}
+
+#chat-panel.open {
+    transform: translateX(0); /* Hiện panel */
+    margin: 2.5dvh 1vw;
+}
+
+/* Nút đóng chat panel */
+#chat-panel-close {
+    position: absolute;
+    top: 1em;
+    right: 1em;
+    background: none;
+    border: none;
+    color: white;
+    font-size: 1.2em;
+    cursor: pointer;
+}
+
+body:has(#chat-panel.open) > #video-grid-wrapper > #video-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+/* Điều chỉnh lại #video-grid-wrapper khi chat mở */
+#video-grid-wrapper.chat-open {
+    margin-right: 300px; /* Để chừa khoảng trống cho chat panel */
+}
+
+/* CSS cho nút mở chat panel */
+#toggle-chat-button.active {
+    background-color: #444; /* Đổi màu để hiển thị trạng thái bật */
 }

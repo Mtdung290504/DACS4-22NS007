@@ -211,33 +211,33 @@ document.getElementById('leave-room').addEventListener('click', () => {
     window.location.href = '/';
 });
 
-// let screenStream;  // Để lưu stream chia sẻ màn hình
+let screenStream;  // Để lưu stream chia sẻ màn hình
 
-// document.getElementById('toggle-share-screen').addEventListener('click', async () => {
-//     if (!screenStream) {
-//         try {
-//             screenStream = await navigator.mediaDevices.getDisplayMedia({ video: true });
-//             screenStream.getVideoTracks()[0].onended = stopScreenSharing;
-//             // Thêm vào kết nối WebRTC và hiển thị
-//             replaceTrack(screenStream.getVideoTracks()[0]);
-//             addVideoStream(myVideo, screenStream); // Hiển thị video màn hình cho chính mình
-//         } catch (err) {
-//             console.error('Không thể chia sẻ màn hình:', err);
-//         }
-//     } else {
-//         stopScreenSharing();
-//     }
-// });
+document.getElementById('toggle-share-screen').addEventListener('click', async () => {
+    if (!screenStream) {
+        try {
+            screenStream = await navigator.mediaDevices.getDisplayMedia({ video: true });
+            screenStream.getVideoTracks()[0].onended = stopScreenSharing;
+            // Thêm vào kết nối WebRTC và hiển thị
+            replaceTrack(screenStream.getVideoTracks()[0]);
+            addVideoStream(myVideo, screenStream); // Hiển thị video màn hình cho chính mình
+        } catch (err) {
+            console.error('Không thể chia sẻ màn hình:', err);
+        }
+    } else {
+        stopScreenSharing();
+    }
+});
 
-// function stopScreenSharing() {
-//     if (screenStream) {
-//         screenStream.getTracks().forEach(track => track.stop());
-//         screenStream = null;
+function stopScreenSharing() {
+    if (screenStream) {
+        screenStream.getTracks().forEach(track => track.stop());
+        screenStream = null;
 
-//         // Nếu camera vẫn hoạt động, thay thế màn hình bằng camera
-//         if (myVideoStream.getVideoTracks().length) {
-//             replaceTrack(myVideoStream.getVideoTracks()[0]);
-//             addVideoStream(myVideo, myVideoStream); // Trở lại video camera cho chính mình
-//         }
-//     }
-// }
+        // Nếu camera vẫn hoạt động, thay thế màn hình bằng camera
+        if (myVideoStream.getVideoTracks().length) {
+            replaceTrack(myVideoStream.getVideoTracks()[0]);
+            addVideoStream(myVideo, myVideoStream); // Trở lại video camera cho chính mình
+        }
+    }
+}

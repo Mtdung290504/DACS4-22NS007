@@ -105,9 +105,9 @@ function handleSignalingEvents() {
 
             // Tạo answer để gửi lại cho peer gửi offer
             peer.createAnswer().then(answer => {
-                    peer.setLocalDescription(answer);
-                    socket.emit('answer', fromId, answer);  // Gửi answer đến peer khác
-                });
+                peer.setLocalDescription(answer);
+                socket.emit('answer', fromId, answer);  // Gửi answer đến peer khác
+            });
         }
     });
 

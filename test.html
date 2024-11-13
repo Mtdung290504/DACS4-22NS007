@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Demo chia sẻ MediaStream</title>
+</head>
+
+<body>
+    <h2>Video gốc từ camera</h2>
+    <video id="originalVideo" autoplay playsinline muted></video>
+
+    <h2>Video bản sao (tab khác)</h2>
+    <video id="clonedVideo" autoplay playsinline></video>
+
+    <script>
+        let originalStream;
+
+        // Hàm lấy video từ camera và hiển thị trên video gốc
+        async function startOriginalStream() {
+            try {
+                // Yêu cầu luồng video từ camera
+                originalStream = await navigator.mediaDevices.getUserMedia({ video: true });
+
+                // Hiển thị luồng trên phần tử video gốc
+                document.getElementById('originalVideo').srcObject = originalStream;
+
+                // Tạo một bản sao của video track và gán cho video bản sao
+                const clonedStream = new MediaStream();
+                const videoTrackClone = originalStream.getVideoTracks()[0].clone();
+                clonedStream.addTrack(videoTrackClone);
+
+                // Hiển thị bản sao trên video bản sao
+                document.getElementById('clonedVideo').srcObject = clonedStream;
+
+                console.log('Đã tạo bản sao video track từ camera.');
+            } catch (error) {
+                console.error("Không thể truy cập camera:", error);
+            }
+        }
+
+        // Bắt đầu luồng khi trang được tải
+        startOriginalStream();
+    </script>
+</body>
+
+</html>

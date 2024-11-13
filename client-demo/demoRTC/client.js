@@ -234,7 +234,7 @@ function handleDataChannelMessage(userId, event) {
     //         const screenVideo = createScreenVideoElement(userId);
     //         videoGrid.append(screenVideo);
     //     }
-    // } 
+    // }
     else if (message.type === 'SCREEN_SHARING_STOPPED') {
         const screenVideo = document.getElementById(`screen-video-${userId}`);
         if (screenVideo.srcObject) {
