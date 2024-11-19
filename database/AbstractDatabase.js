@@ -1,3 +1,5 @@
+import { applyMethodDecorators, requireImplementMethod } from "../client/utils/decorators.js";
+
 /**
  * @abstract
  * @class
@@ -28,7 +30,7 @@ export default class AbstractDatabase {
      * @param {string} hassedPassword 
      * @returns {Promise<[ id: number, name: string, role: 'lecturer' | 'student' ]>}
      */
-    async login(userName, hassedPassword) {
-        throw new Error('login is not implement yet');
-    }
+    async login(userName, hassedPassword) {}
 }
+
+applyMethodDecorators(AbstractDatabase, 'ALL_METHOD', requireImplementMethod);

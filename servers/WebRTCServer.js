@@ -28,7 +28,7 @@ class WebRTCServer {
         this.rooms = {};
 
         // Cấu hình thư mục public cho các tệp tĩnh
-        this.app.use('/', express.static('client-demo/demoRTCBase'));
+        this.app.use('/', express.static('client_demo/demoRTCBase'));
 
         // Thiết lập các sự kiện của Socket.io
         this.setupSocketEvents();

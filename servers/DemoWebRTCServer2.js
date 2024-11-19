@@ -11,7 +11,7 @@ class WebRTCServer {
         this.io = new Server(this.server);
 
         // Cấu hình thư mục public cho các tệp tĩnh
-        this.app.use('/', express.static('client-demo/demoRTC2'));
+        this.app.use('/', express.static('client_demo/demoRTC2'));
 
         // Thiết lập các sự kiện của Socket.io
         this.setupSocketEvents();

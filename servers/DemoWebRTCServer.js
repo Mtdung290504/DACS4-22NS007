@@ -32,7 +32,7 @@ class MeetingServer {
         this.io = new Server(this.server);
 
         // Serve client files
-        this.app.use('/meet/:roomId', express.static('client-demo/demoRTC'));
+        this.app.use('/meet/:roomId', express.static('client_demo/demoRTC'));
 
         // Socket.IO logic
         this.io.on('connection', (socket) => {

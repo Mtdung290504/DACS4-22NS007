@@ -74,6 +74,16 @@ export function applyMethodDecorators(Class, methodNames, ...decorators) {
 }
 
 /**
+ * Decorator yêu cầu implement abstract method
+ * @type {Decorator}
+ */
+export function requireImplementMethod(originalMethod) {
+    return function () {
+        throw new Error(`'${originalMethod.name}' is not implement yet`);
+    }
+}
+
+/**
  * Decorator viết log
  * @type {Decorator}
  */

@@ -11,5 +11,6 @@ export default class DatabaseMySQL extends AbstractDatabase {
      */
     async login(userName, hassedPassword) {
         console.log(userName, hassedPassword);
+        return new Promise((resolve) => setTimeout(() => resolve([1, 'Dung', 'student']), 200));
     }
 }
