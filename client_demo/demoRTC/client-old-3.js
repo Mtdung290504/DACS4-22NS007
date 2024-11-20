@@ -70,15 +70,29 @@ function connectToNewUser(userId, stream) {
     stream.getTracks().forEach(track => peer.addTrack(track, stream));
 
     // Khi nhận được track của peer khác (stream từ người khác)
+    // peer.ontrack = event => {
+    //     console.log("Track received:", event.track.kind, event.track.readyState);
+    //     console.log("Stream tracks:", event.streams[0].getTracks());
+    //     if (!document.getElementById(`video-${userId}`)) { // Kiểm tra xem video đã tồn tại chưa
+    //         const video = document.createElement('video');
+    //         video.id = `video-${userId}`; // Thêm ID duy nhất cho video
+    //         addVideoStream(video, event.streams[0]);
+    //     }
+    // };
     peer.ontrack = event => {
         console.log("Track received:", event.track.kind, event.track.readyState);
-        console.log("Stream tracks:", event.streams[0].getTracks());
-        if (!document.getElementById(`video-${userId}`)) { // Kiểm tra xem video đã tồn tại chưa
+    
+        const videoElementId = `video-${userId}`;
+        if (!document.getElementById(videoElementId)) {
             const video = document.createElement('video');
-            video.id = `video-${userId}`; // Thêm ID duy nhất cho video
+            video.id = videoElementId;
             addVideoStream(video, event.streams[0]);
+        } else {
+            const video = document.getElementById(videoElementId);
+            video.srcObject = event.streams[0];
         }
     };
+    
 
     // Xử lý khi có ICE candidate
     peer.onicecandidate = event => {
@@ -127,15 +141,28 @@ function handleSignalingEvents() {
             myVideoStream.getTracks().forEach(track => peer.addTrack(track, myVideoStream));
 
             // Khi nhận được track của peer khác
+            // peer.ontrack = event => {
+            //     console.log("Track received:", event.track.kind, event.track.readyState);
+            //     console.log("Stream tracks:", event.streams[0].getTracks());
+            //     if (!document.getElementById(`video-${fromId}`)) { // Kiểm tra xem video đã tồn tại chưa
+            //         const video = document.createElement('video');
+            //         video.id = `video-${fromId}`;
+            //         addVideoStream(video, event.streams[0]);
+            //     }
+            // };
             peer.ontrack = event => {
                 console.log("Track received:", event.track.kind, event.track.readyState);
-                console.log("Stream tracks:", event.streams[0].getTracks());
-                if (!document.getElementById(`video-${fromId}`)) { // Kiểm tra xem video đã tồn tại chưa
+            
+                const videoElementId = `video-${fromId}`;
+                if (!document.getElementById(videoElementId)) {
                     const video = document.createElement('video');
-                    video.id = `video-${fromId}`;
+                    video.id = videoElementId;
                     addVideoStream(video, event.streams[0]);
+                } else {
+                    const video = document.getElementById(videoElementId);
+                    video.srcObject = event.streams[0];
                 }
-            };
+            };            
 
             // Xử lý khi có ICE candidate
             peer.onicecandidate = event => {
@@ -327,40 +354,36 @@ toggleMicButton.addEventListener('click', () => {
     }
 });
 
-// Thay đổi trạng thái video
 toggleCamButton.addEventListener('click', async () => {
-    if (myVideoStream.getVideoTracks().length) {
-        // Dừng và xóa track camera hiện tại khỏi myVideoStream
-        myVideoStream.getVideoTracks().forEach(track => {
-            track.stop();
-            myVideoStream.removeTrack(track);
-        });
+    const videoTrack = myVideoStream.getVideoTracks()[0];
 
+    if (videoTrack && !isPlaceholderTrack(videoTrack)) {
+        // Người dùng tắt camera
+        myVideoStream.getVideoTracks().forEach(track => track.stop());
+        const placeholderTrack = createPlaceholderVideoTrack();
+        myVideoStream.removeTrack(videoTrack);
+        myVideoStream.addTrack(placeholderTrack);
+
+        replaceTrack(placeholderTrack); // Cập nhật cho các peer
         broadcastData({ type: 'CAMERA_OFF' });
+
         toggleCamButton.classList.add('inactive');
         toggleCamButton.classList.remove('active');
     } else {
         try {
-            // Kiểm tra nếu đã có track âm thanh, chỉ yêu cầu video nếu có
-            const constraints = myVideoStream.getAudioTracks().length ? { video: true } : { video: true, audio: true };
-            const newStream = await navigator.mediaDevices.getUserMedia(constraints);
-
-            // Giữ lại audio track cũ nếu stream mới không có
-            if (constraints.video && myVideoStream.getAudioTracks().length) {
-                myVideoStream.getAudioTracks().forEach(track => newStream.addTrack(track));
-            }
-
+            // Người dùng bật lại camera
+            const newStream = await navigator.mediaDevices.getUserMedia({ video: true });
             const newVideoTrack = newStream.getVideoTracks()[0];
 
-            // Thay myVideoStream hiện tại bằng stream mới có video
-            myVideoStream = newStream;
+            // Thay thế track giả bằng track thật
+            myVideoStream.getVideoTracks().forEach(track => myVideoStream.removeTrack(track));
+            myVideoStream.addTrack(newVideoTrack);
 
-            // Cập nhật kết nối WebRTC với video track mới
-            replaceTrack(newVideoTrack);
+            replaceTrack(newVideoTrack); // Cập nhật cho các peer
+            addVideoStream(myVideo, myVideoStream); // Cập nhật giao diện
 
-            // Cập nhật video trong giao diện
-            addVideoStream(myVideo, newStream);
             broadcastData({ type: 'CAMERA_ON' });
+
             toggleCamButton.classList.add('active');
             toggleCamButton.classList.remove('inactive');
         } catch (err) {
@@ -369,13 +392,13 @@ toggleCamButton.addEventListener('click', async () => {
     }
 });
 
-// Hàm thay thế video track hiện tại trong kết nối WebRTC
 function replaceTrack(newTrack) {
-    const videoSender = Object.values(peerConnections).map((peer) =>
-        peer.getSenders().find(sender => sender.track && sender.track.kind === 'video')
-    ).filter(Boolean);
-
-    videoSender.forEach(sender => sender.replaceTrack(newTrack));  // Thay thế track video bằng track mới
+    Object.values(peerConnections).forEach(peer => {
+        const videoSender = peer.getSenders().find(sender => sender.track && sender.track.kind === 'video');
+        if (videoSender) {
+            videoSender.replaceTrack(newTrack).catch(err => console.error("Failed to replace track:", err));
+        }
+    });
 }
 
 // Khi người dùng rời phòng
@@ -383,3 +406,27 @@ document.getElementById('leave-room').addEventListener('click', () => {
     socket.disconnect();  // Ngắt kết nối socket
     window.location.href = '/';  // Chuyển hướng người dùng về trang chủ
 });
+
+// Map để theo dõi trạng thái track
+const trackMap = new Map();
+
+// Hàm tạo track video giả
+function createPlaceholderVideoTrack() {
+    const canvas = document.createElement('canvas');
+    canvas.width = 1;
+    canvas.height = 1;
+
+    const stream = canvas.captureStream();
+    const placeholderTrack = stream.getVideoTracks()[0];
+
+    // Gắn cờ track giả
+    trackMap.set(placeholderTrack, { isPlaceholder: true });
+
+    return placeholderTrack;
+}
+
+// Kiểm tra track có phải là track giả không
+function isPlaceholderTrack(track) {
+    const trackInfo = trackMap.get(track);
+    return trackInfo?.isPlaceholder || false;
+}

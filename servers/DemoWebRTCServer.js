@@ -30,6 +30,7 @@ class MeetingServer {
         const sslOptions = this.createSSLOptions();
         this.server = createServer(sslOptions, this.app);
         this.io = new Server(this.server);
+        this.rtcDebug = false;
 
         // Serve client files
         this.app.use('/meet/:roomId', express.static('client_demo/demoRTC'));
@@ -48,19 +49,19 @@ class MeetingServer {
 
                 // Xử lý khi có offer từ peer
                 socket.on('offer', (targetId, offer) => {
-                    console.log('offer to: ', targetId, offer);
+                    this.rtcDebug && console.log('offer to: ', targetId, offer);
                     socket.to(targetId).emit('offer', socket.id, offer);
                 });
 
                 // Xử lý khi có answer từ peer
                 socket.on('answer', (targetId, answer) => {
-                    console.log('answer to: ', targetId, answer);
+                    this.rtcDebug && console.log('answer to: ', targetId, answer);
                     socket.to(targetId).emit('answer', socket.id, answer);
                 });
 
                 // Xử lý khi có ICE candidate từ peer
                 socket.on('candidate', (targetId, candidate) => {
-                    console.log('candidate to: ', targetId, candidate);
+                    this.rtcDebug && console.log('candidate to: ', targetId, candidate);
                     socket.to(targetId).emit('candidate', socket.id, candidate);
                 });
 
