@@ -59,9 +59,11 @@ function connectToNewUser(userId, stream) {
 
     // Khi nhận được track của peer khác (stream từ người khác)
     peer.ontrack = event => {
-        if (!document.getElementById(`video-${userId}`)) { // Kiểm tra xem video đã tồn tại chưa
+        if (!document.getElementById(`video-${userId}`)) {
             const video = document.createElement('video');
-            video.id = `video-${userId}`; // Thêm ID duy nhất cho video
+            video.id = `video-${userId}`;
+            video.autoplay = true;  // Bật tự động phát
+            video.playsinline = true;  // Đảm bảo video phát trên các thiết bị di động
             addVideoStream(video, event.streams[0]);
         }
     };
@@ -97,6 +99,8 @@ function handleSignalingEvents() {
                 if (!document.getElementById(`video-${fromId}`)) { // Kiểm tra xem video đã tồn tại chưa
                     const video = document.createElement('video');
                     video.id = `video-${fromId}`;
+                    video.autoplay = true;  // Bật tự động phát
+                    video.playsinline = true;  // Đảm bảo video phát trên các thiết bị di động
                     addVideoStream(video, event.streams[0]);
                 }
             };

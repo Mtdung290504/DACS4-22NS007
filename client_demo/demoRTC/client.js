@@ -69,44 +69,44 @@ function connectToNewUser(userId, stream) {
     // Gửi các track của stream (video & audio) vào kết nối
     stream.getTracks().forEach(track => peer.addTrack(track, stream));
 
-    // peer.ontrack = event => {
-    //     // alert('ontrack');
-    //     // if (event.track.kind === 'video') {
-    //     //     if (event.streams[0].getVideoTracks()[0].onended?.name === 'stopScreenSharing') {
-    //     //         // Nếu stream là chia sẻ màn hình, tạo một thẻ video riêng cho màn hình
-    //     //         if (!document.getElementById(`screen-video-${userId}`)) {
-    //     //             const screenVideo = createScreenVideoElement(userId);
-    //     //             addVideoStream(screenVideo, event.streams[0]);
-    //     //         }
-    //     //     } else {
-    //     //         // Nếu stream là từ camera, tạo thẻ video cho camera
-    //     //         if (!document.getElementById(`video-${userId}`)) {
-    //     //             const video = document.createElement('video');
-    //     //             video.id = `video-${userId}`;
-    //     //             addVideoStream(video, event.streams[0]);
-    //     //         }
-    //     //     }
-    //     // }
-    // };
+    peer.ontrack = event => {
+        // alert('ontrack');
+        // if (event.track.kind === 'video') {
+        //     if (event.streams[0].getVideoTracks()[0].onended?.name === 'stopScreenSharing') {
+        //         // Nếu stream là chia sẻ màn hình, tạo một thẻ video riêng cho màn hình
+        //         if (!document.getElementById(`screen-video-${userId}`)) {
+        //             const screenVideo = createScreenVideoElement(userId);
+        //             addVideoStream(screenVideo, event.streams[0]);
+        //         }
+        //     } else {
+                // Nếu stream là từ camera, tạo thẻ video cho camera
+                if (!document.getElementById(`video-${userId}`)) {
+                    const video = document.createElement('video');
+                    video.id = `video-${userId}`;
+                    addVideoStream(video, event.streams[0]);
+                }
+        //     }
+        // }
+    };
 
     peer.ontrack = event => {
-        alert('track');
-        if (event.track.kind === 'video') {
-            if (event.track.label.includes('screen')) {
-                // Nếu track là chia sẻ màn hình, tạo thẻ video cho chia sẻ màn hình
-                if (!document.getElementById(`screen-video-${userId}`)) {
-                    const screenVideo = createScreenVideoElement(userId);
-                    addVideoStream(screenVideo, event.streams[0]);
-                }
-            } else {
+        // alert('track');
+        // if (event.track.kind === 'video') {
+        //     if (event.track.label.includes('screen')) {
+        //         // Nếu track là chia sẻ màn hình, tạo thẻ video cho chia sẻ màn hình
+        //         if (!document.getElementById(`screen-video-${userId}`)) {
+        //             const screenVideo = createScreenVideoElement(userId);
+        //             addVideoStream(screenVideo, event.streams[0]);
+        //         }
+        //     } else {
                 // Nếu track là từ camera, tạo thẻ video cho camera
                 if (!document.getElementById(`video-${userId}`)) {
                     const video = document.createElement('video');
                     video.id = `video-${userId}`;
                     addVideoStream(video, event.streams[0]);
                 }
-            }
-        }
+        //     }
+        // }
     };
 
     // Xử lý khi có ICE candidate
@@ -229,12 +229,6 @@ function handleDataChannelMessage(userId, event) {
             videoElement.srcObject = remoteStream;  // Khôi phục stream
         }
     }
-    // else if (message.type === 'SCREEN_SHARING_STARTED') {
-    //     if (!document.getElementById(`screen-video-${userId}`)) {
-    //         const screenVideo = createScreenVideoElement(userId);
-    //         videoGrid.append(screenVideo);
-    //     }
-    // }
     else if (message.type === 'SCREEN_SHARING_STOPPED') {
         const screenVideo = document.getElementById(`screen-video-${userId}`);
         if (screenVideo.srcObject) {
