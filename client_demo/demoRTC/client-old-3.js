@@ -392,6 +392,57 @@ toggleCamButton.addEventListener('click', async () => {
     }
 });
 
+// Thay đổi trạng thái video
+// toggleCamButton.addEventListener('click', async () => {
+//     if (myVideoStream.getVideoTracks().length) {
+//         // Dừng và xóa track camera hiện tại khỏi myVideoStream
+//         myVideoStream.getVideoTracks().forEach(track => {
+//             track.stop();
+//             myVideoStream.removeTrack(track);
+//         });
+
+//         broadcastData({ type: 'CAMERA_OFF' });
+//         toggleCamButton.classList.add('inactive');
+//         toggleCamButton.classList.remove('active');
+//     } else {
+//         try {
+//             // Kiểm tra nếu đã có track âm thanh, chỉ yêu cầu video nếu có
+//             const constraints = myVideoStream.getAudioTracks().length ? { video: true } : { video: true, audio: true };
+//             const newStream = await navigator.mediaDevices.getUserMedia(constraints);
+
+//             // Giữ lại audio track cũ nếu stream mới không có
+//             if (constraints.video && myVideoStream.getAudioTracks().length) {
+//                 myVideoStream.getAudioTracks().forEach(track => newStream.addTrack(track));
+//             }
+
+//             const newVideoTrack = newStream.getVideoTracks()[0];
+
+//             // Thay myVideoStream hiện tại bằng stream mới có video
+//             myVideoStream = newStream;
+
+//             // Cập nhật kết nối WebRTC với video track mới
+//             replaceTrack(newVideoTrack);
+
+//             // Cập nhật video trong giao diện
+//             addVideoStream(myVideo, newStream);
+//             broadcastData({ type: 'CAMERA_ON' });
+//             toggleCamButton.classList.add('active');
+//             toggleCamButton.classList.remove('inactive');
+//         } catch (err) {
+//             console.error("Không thể bật camera:", err);
+//         }
+//     }
+// });
+
+// Hàm thay thế video track hiện tại trong kết nối WebRTC
+// function replaceTrack(newTrack) {
+//     const videoSender = Object.values(peerConnections).map((peer) =>
+//         peer.getSenders().find(sender => sender.track && sender.track.kind === 'video')
+//     ).filter(Boolean);
+
+//     videoSender.forEach(sender => sender.replaceTrack(newTrack));  // Thay thế track video bằng track mới
+// }
+
 function replaceTrack(newTrack) {
     Object.values(peerConnections).forEach(peer => {
         const videoSender = peer.getSenders().find(sender => sender.track && sender.track.kind === 'video');
