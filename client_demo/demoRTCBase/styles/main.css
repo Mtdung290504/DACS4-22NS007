@@ -1,3 +1,5 @@
+@import url('./chat-nav.css');
+
 * {
     box-sizing: border-box;
     margin: 0;
@@ -14,7 +16,7 @@ body {
     padding: 10px 10%;
     overflow: hidden;
     transition: padding .3s;
-    font-family: 'Montserrat', sans-serif;
+    font-family: 'Roboto', sans-serif;
 }
 
 .debug {
@@ -70,15 +72,15 @@ body {
 
 @keyframes pulse {
     0% {
-        border: 3px groove transparent;
+        border: 2px groove transparent;
         box-shadow: 0 0 2px transparent;
     }
     50% {
-        border: 3px groove deepskyblue;
-        box-shadow: 0 0 5px lightblue;
+        border: 2px groove #1a73e8;
+        box-shadow: 0 0 3px #1a73e8;
     }
     100% {
-        border: 3px groove transparent;
+        border: 2px groove transparent;
         box-shadow: 0 0 2px transparent;
     }
 }
@@ -125,6 +127,7 @@ body {
     /* border-radius: 5px; */
     padding: .5em;
     /* box-shadow: 0px 0px 3px snow; */
+    box-shadow: -2px 0 5px rgba(0, 0, 0, 0.7);
     border-bottom: 2px solid white;
 }
 
@@ -141,9 +144,12 @@ body {
     position: relative;
     display: grid;
     place-items: center;
+    box-shadow: 2px 2px 5px rgba(0, 0, 0, 1);
 }
 .control-button.active {
     background-color: #222;
+    box-shadow: none;
+    /* box-shadow: -1px -1px 5px rgba(0, 0, 0, 0.7); */
 }
 
 .control-button::after {
@@ -175,19 +181,23 @@ body {
     opacity: 1;
 }
 
+.control-button:active {
+    box-shadow: 1px 1px 5px rgba(0, 0, 0, 1);
+}
+
 #leave-button {
     background-color: red;
 }
 
 #leave-button::after {
-    background-image: url('assets/end_call.png');
+    background-image: url('../assets/icons/end_call.png');
 }
 
 #toggle-mic-button::after {
-    background-image: url('assets/mic.png');
+    background-image: url('../assets/icons/mic.png');
 }
 #toggle-mic-button.active::after {
-    background-image: url('assets/mic_off.png');
+    background-image: url('../assets/icons/mic_off.png');
 }
 
 #toggle-cam-button.control-button.blocked {
@@ -195,79 +205,30 @@ body {
     background-color: #111;
 }
 #toggle-cam-button::after {
-    background-image: url('assets/cam.png');
+    background-image: url('../assets/icons/cam.png');
 }
 #toggle-cam-button.active::after {
-    background-image: url('assets/cam_off.png');
+    background-image: url('../assets/icons/cam_off.png');
 }
 
 #toggle-share-screen-button::after {
-    background-image: url('assets/screen_share.png');
+    background-image: url('../assets/icons/screen_share.png');
 }
 #toggle-share-screen-button.active::after {
-    background-image: url('assets/stop_screen_share.png');
+    background-image: url('../assets/icons/stop_screen_share.png');
 }
 
 #toggle-rise-hand-button::after {
-    background-image: url('assets/front_hand.png');
+    background-image: url('../assets/icons/front_hand.png');
 }
 #toggle-rise-hand-button.active::after {
-    background-image: url('assets/back_hand.png');
+    background-image: url('../assets/icons/back_hand.png');
 }
 
 #toggle-chat-button::after {
-    background-image: url('assets/chat.png');
+    background-image: url('../assets/icons/chat.png');
 }
 
 #toggle-attendees-button::after {
-    background-image: url('assets/attendees.png');
-}
-
-/* Panel chat bên phải */
-#chat-panel {
-    position: fixed;
-    right: 0;
-    top: 0;
-    width: 25vw; /* Độ rộng của panel */
-    height: 95dvh;
-    background-color: #333;
-    color: white;
-    padding: 1em;
-    transform: translateX(100%); /* Ẩn panel bên phải */
-    transition: transform 0.3s ease; /* Hiệu ứng trượt */
-    z-index: 110;
-    border-radius: 5px;
-    border: 1px solid white;
-    overflow-y: auto;
-}
-
-#chat-panel.open {
-    transform: translateX(0); /* Hiện panel */
-    margin: 2.5dvh 1vw;
-}
-
-/* Nút đóng chat panel */
-#chat-panel-close {
-    position: absolute;
-    top: 1em;
-    right: 1em;
-    background: none;
-    border: none;
-    color: white;
-    font-size: 1.2em;
-    cursor: pointer;
-}
-
-body:has(#chat-panel.open) > #video-grid-wrapper > #video-grid {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-}
-
-/* Điều chỉnh lại #video-grid-wrapper khi chat mở */
-#video-grid-wrapper.chat-open {
-    margin-right: 300px; /* Để chừa khoảng trống cho chat panel */
-}
-
-/* CSS cho nút mở chat panel */
-#toggle-chat-button.active {
-    background-color: #444; /* Đổi màu để hiển thị trạng thái bật */
+    background-image: url('../assets/icons/attendees.png');
 }

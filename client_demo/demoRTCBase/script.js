@@ -7,13 +7,11 @@ const chatPanelClose = document.getElementById('chat-panel-close');
 toggleChatButton.addEventListener('click', () => {
     chatPanel.classList.toggle('open');
     toggleChatButton.classList.toggle('active');
-    videoGridWrapper.classList.toggle('chat-open');
 });
 
 chatPanelClose.addEventListener('click', () => {
     chatPanel.classList.remove('open');
     toggleChatButton.classList.remove('active');
-    videoGridWrapper.classList.remove('chat-open');
 });
 
 // Thêm sự kiện cho việc double click để pin video
@@ -30,7 +28,41 @@ document.querySelectorAll('.video-wrapper').forEach(e => {
     });
 });
 
-// setInterval(() => {
-//     document.querySelector('.video-wrapper').classList.add('on-voice');
-//     setTimeout(() => document.querySelector('.video-wrapper').classList.remove('on-voice'), 500);
-// }, 1000);
+const chatContainer = document.getElementById('chat-content');
+const chatForm = document.getElementById('chat-form');
+const userOutput = document.getElementById('chat-text');
+const sendButton = document.getElementById('chat-send');
+
+sendButton.addEventListener('click', handleSendMessage);
+chatForm.addEventListener('submit', (e) => {
+    e.preventDefault();
+    handleSendMessage();
+})
+
+function handleSendMessage() {
+    sendMessage(userOutput.value);
+    userOutput.value = null;
+}
+
+function sendMessage(message) {
+    const box = document.createElement('div');
+    box.className = 'message outgoing';
+    box.textContent = message;
+    chatContainer.appendChild(box);
+    chatContainer.scrollTo({
+        top: chatContainer.scrollHeight,
+        behavior: "smooth"
+    });
+}
+
+function receiveMessage(message, sender) {
+    const box = document.createElement('div');
+    box.className = 'message incoming';
+    box.textContent = message;
+    box.setAttribute('sender', sender);
+    chatContainer.appendChild(box);
+    chatContainer.scrollTo({
+        top: chatContainer.scrollHeight,
+        behavior: "smooth"
+    });
+}

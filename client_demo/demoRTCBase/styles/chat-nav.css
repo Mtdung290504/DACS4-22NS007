@@ -1,0 +1,167 @@
+body:has(#chat-panel.open) > #video-grid-wrapper > #video-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+body:has(#chat-panel.open) > #video-grid-wrapper {
+    margin-right: 300px;
+}
+
+#chat-panel {
+    position: fixed;
+    right: 0;
+    top: 0;
+    width: 25vw;
+    height: 95vh;
+    background-color: #202124;
+    color: white;
+    transform: translateX(100%);
+    transition: transform 0.3s ease;
+    z-index: 110;
+    border-radius: 10px;
+    box-shadow: -2px 0 5px rgba(0, 0, 0, 0.7);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+#chat-panel.open {
+    transform: translateX(0);
+    margin: 2.5vh 1vw;
+}
+
+#chat-header {
+    position: relative;
+    background-color: #333;
+    padding: 1em;
+    display: flex;
+    justify-content: space-between;
+    border-bottom: 1px solid #444;
+}
+
+#chat-header h3 {
+    margin: 0;
+    font-size: 1.2em;
+}
+
+/* Nội dung chat */
+#chat-content {
+    flex: 1;
+    padding: 1em;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+}
+
+.message {
+    max-width: 80%;
+    margin-bottom: 1em;
+    padding: 0.8em;
+    border-radius: 10px;
+    font-size: 0.8em;
+    line-height: 1.4;
+}
+
+.message.incoming {
+    background-color: #444;
+    color: #eee;
+    align-self: flex-start;
+}
+.message.incoming::before {
+    content: attr(sender);
+    text-transform: capitalize;
+    font-weight: bold;
+    display: block;
+    margin-bottom: .3em;
+}
+
+.message.outgoing {
+    background-color: #1a73e8;
+    color: white;
+    align-self: flex-end;
+}
+
+/* Khu vực nhập chat */
+#chat-input {
+    display: flex;
+    align-items: center;
+    padding: 0.5em 1em;
+    border-top: 1px solid #444;
+    background-color: #333;
+}
+
+#chat-text {
+    padding: 0.8em 1em;
+    font-size: 1em;
+    border: none;
+    border-radius: 20px;
+    background-color: #444;
+    color: white;
+    outline: none;
+    width: 100%;
+    font-size: .9em;
+}
+
+#chat-text::placeholder {
+    color: #aaa;
+}
+
+#chat-form {
+    flex: 1;
+}
+
+/* Nút gửi tin nhắn */
+#chat-send {
+    margin-left: 0.5em;
+    background-color: #1a73e8;
+    border: none;
+    aspect-ratio: 1;
+    height: 100%;
+    border-radius: 50%;
+    cursor: pointer;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.2s ease, transform 0.2s ease;
+}
+
+/* Chèn biểu tượng qua ::before */
+#chat-send::after {
+    content: '';
+    display: block;
+    aspect-ratio: 1;
+    height: 100%;
+    background-image: url('../assets/icons/send.png');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    transform-origin: center;
+    transform: scale(.75) translateX(.2em);
+}
+
+/* Hiệu ứng hover */
+#chat-send:hover {
+    background-color: #357ae8;
+}
+
+/* Hiệu ứng nhấn nút */
+#chat-send:active {
+    transform: scale(0.9); /* Nhấn nút sẽ thu nhỏ nhẹ */
+    background-color: #2858c8; /* Màu tối hơn */
+}
+
+/* Nút đóng */
+#chat-panel-close {
+    /* position: absolute;
+    top: 1em;
+    right: 1em; */
+    background: none;
+    border: none;
+    cursor: pointer;
+    aspect-ratio: 1;
+    height: 100%;
+    background-image: url('../assets/icons/close.png');
+    background-size: cover;
+    background-position: center;
+}
