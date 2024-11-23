@@ -33,13 +33,13 @@ const chatForm = document.getElementById('chat-form');
 const userOutput = document.getElementById('chat-text');
 const sendButton = document.getElementById('chat-send');
 
-sendButton.addEventListener('click', handleSendMessage);
+sendButton.addEventListener('click', onSendMessage);
 chatForm.addEventListener('submit', (e) => {
     e.preventDefault();
-    handleSendMessage();
+    onSendMessage();
 })
 
-function handleSendMessage() {
+function onSendMessage() {
     sendMessage(userOutput.value);
     userOutput.value = null;
 }

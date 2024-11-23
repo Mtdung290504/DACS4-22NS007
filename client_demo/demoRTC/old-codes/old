@@ -1,0 +1,28 @@
+toggleCamButton.addEventListener('click', async () => {
+    const videoTrack = myVideoStream.getVideoTracks()[0];
+
+    if (videoTrack && !isPlaceholderTrack(videoTrack)) {
+        // Người dùng tắt camera
+        videoTrack.stop(); // Dừng track video hiện tại
+
+        // Thay thế bằng track placeholder
+        const placeholderStream = new MediaStream([createPlaceholderVideoTrack()]);
+        const placeholderTrack = placeholderStream.getVideoTracks()[0];
+
+        replaceTrack(placeholderTrack);
+
+        toggleCamButton.classList.add('inactive');
+        toggleCamButton.classList.remove('active');
+    } else {
+        // Người dùng bật camera
+        const newStream = await navigator.mediaDevices.getUserMedia({ video: true });
+        const newVideoTrack = newStream.getVideoTracks()[0];
+
+        replaceTrack(newVideoTrack);
+
+        myVideoStream.addTrack(newVideoTrack); // Cập nhật stream của chính mình
+
+        toggleCamButton.classList.add('active');
+        toggleCamButton.classList.remove('inactive');
+    }
+});

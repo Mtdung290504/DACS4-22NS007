@@ -5,7 +5,6 @@ BEFORE INSERT ON classes
 FOR EACH ROW
 BEGIN
     SET NEW.invite_code_students = UUID();
-    SET NEW.invite_code_collaborators = UUID();
 END $
 
 CREATE TRIGGER generate_meeting_invite_code

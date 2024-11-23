@@ -1,4 +1,4 @@
-import { io } from "./socket.io-client.min.js";
+import { io } from "./libs/socket.io-client.min.js";
 
 const socket = io();
 const videoGrid = document.getElementById('video-grid');
@@ -72,15 +72,6 @@ function connectToNewUser(userId, stream) {
     stream.getTracks().forEach(track => peer.addTrack(track, stream));
 
     // Khi nhận được track của peer khác (stream từ người khác)
-    // peer.ontrack = event => {
-    //     console.log("Track received:", event.track.kind, event.track.readyState);
-    //     console.log("Stream tracks:", event.streams[0].getTracks());
-    //     if (!document.getElementById(`video-${userId}`)) { // Kiểm tra xem video đã tồn tại chưa
-    //         const video = document.createElement('video');
-    //         video.id = `video-${userId}`; // Thêm ID duy nhất cho video
-    //         addVideoStream(video, event.streams[0]);
-    //     }
-    // };
     peer.ontrack = event => {
         console.log("Track received:", event.track.kind, event.track.readyState);
     
@@ -89,12 +80,12 @@ function connectToNewUser(userId, stream) {
             const video = document.createElement('video');
             video.id = videoElementId;
             addVideoStream(video, event.streams[0]);
+            console.log(event.streams[0].getTracks());
         } else {
             const video = document.getElementById(videoElementId);
             video.srcObject = event.streams[0];
         }
     };
-    
 
     // Xử lý khi có ICE candidate
     peer.onicecandidate = event => {
@@ -143,15 +134,6 @@ function handleSignalingEvents() {
             myVideoStream.getTracks().forEach(track => peer.addTrack(track, myVideoStream));
 
             // Khi nhận được track của peer khác
-            // peer.ontrack = event => {
-            //     console.log("Track received:", event.track.kind, event.track.readyState);
-            //     console.log("Stream tracks:", event.streams[0].getTracks());
-            //     if (!document.getElementById(`video-${fromId}`)) { // Kiểm tra xem video đã tồn tại chưa
-            //         const video = document.createElement('video');
-            //         video.id = `video-${fromId}`;
-            //         addVideoStream(video, event.streams[0]);
-            //     }
-            // };
             peer.ontrack = event => {
                 console.log("Track received:", event.track.kind, event.track.readyState);
             
@@ -160,6 +142,7 @@ function handleSignalingEvents() {
                     const video = document.createElement('video');
                     video.id = videoElementId;
                     addVideoStream(video, event.streams[0]);
+                    console.log(event.streams[0].getTracks());
                 } else {
                     const video = document.getElementById(videoElementId);
                     video.srcObject = event.streams[0];
@@ -219,11 +202,7 @@ function handleSignalingEvents() {
 function handleDataChannelMessage(userId, event) {
     const message = JSON.parse(event.data);
     if (message.type === 'CAMERA_OFF') {
-        // Thay đổi video thành màu đen khi camera tắt
-        const videoElement = document.getElementById(`video-${userId}`);
-        if (videoElement) {
-            videoElement.srcObject = null;  // Xóa video stream hiện tại
-        }
+
     } else if (message.type === 'CAMERA_ON') {
         // Khi camera bật lại, khôi phục stream video
         const peer = peerConnections[userId];
@@ -246,11 +225,8 @@ function handleDataChannelMessage(userId, event) {
 
 // Hàm thêm video stream vào lưới video
 function addVideoStream(video, stream) {
-    const videoTrack = stream.getVideoTracks()[0];
-    console.log(`Video track state: ${videoTrack.readyState}`);
-
     video.srcObject = stream;
-    console.log("Assigned stream to video element:", video.srcObject);
+    console.log("Assigned stream to video element:", video.srcObject, video.srcObject.getTracks());
     video.autoplay = true;
     video.playsinline = true;
 
@@ -271,7 +247,6 @@ function addVideoStream(video, stream) {
 
 // Chia sẻ màn hình
 let screenStream;  // Để lưu stream chia sẻ màn hình
-let screenVideo;   // Thẻ video riêng cho chia sẻ màn hình
 
 // Khi bắt đầu chia sẻ màn hình
 document.getElementById('toggle-share-screen').addEventListener('click', async () => {
@@ -299,17 +274,9 @@ function stopScreenSharing() {
         screenStream.getTracks().forEach(track => track.stop());  // Dừng các track trong stream chia sẻ màn hình
         screenStream = null;
 
-        // Gỡ bỏ video chia sẻ màn hình của chính mình khỏi giao diện
-        document.getElementById(`screen-video-${socket.id}`)?.remove();
-
         // Khôi phục lại track camera
         const videoTrack = myVideoStream.getVideoTracks()[0];
-        Object.values(peerConnections).forEach(peer => {
-            const videoSender = peer.getSenders().find(sender => sender.track.kind === 'video');
-            if (videoSender) {
-                videoSender.replaceTrack(videoTrack);  // Khôi phục track camera
-            }
-        });
+        replaceTrack(videoTrack);
 
         // Gửi thông báo dừng chia sẻ màn hình qua DataChannel
         broadcastData({ type: 'SCREEN_SHARING_STOPPED' });
@@ -361,13 +328,15 @@ toggleCamButton.addEventListener('click', async () => {
 
     if (videoTrack && !isPlaceholderTrack(videoTrack)) {
         // Người dùng tắt camera
-        myVideoStream.getVideoTracks().forEach(track => track.stop());
-        const placeholderTrack = createPlaceholderVideoTrack();
+        videoTrack.stop(); // Dừng track thật
+        const placeholderTrack = createPlaceholderVideoTrack(); // Tạo track giả (màn hình đen)
+        
+        // Loại bỏ track video cũ và thêm track giả vào stream
         myVideoStream.removeTrack(videoTrack);
         myVideoStream.addTrack(placeholderTrack);
 
-        replaceTrack(placeholderTrack); // Cập nhật cho các peer
-        broadcastData({ type: 'CAMERA_OFF' });
+        replaceTrack(myVideoStream.getVideoTracks()[0]);  // Thay thế track cho các peer
+        broadcastData({ type: 'CAMERA_OFF' });  // Thông báo tắt camera
 
         toggleCamButton.classList.add('inactive');
         toggleCamButton.classList.remove('active');
@@ -381,10 +350,10 @@ toggleCamButton.addEventListener('click', async () => {
             myVideoStream.getVideoTracks().forEach(track => myVideoStream.removeTrack(track));
             myVideoStream.addTrack(newVideoTrack);
 
-            replaceTrack(newVideoTrack); // Cập nhật cho các peer
-            addVideoStream(myVideo, myVideoStream); // Cập nhật giao diện
+            replaceTrack(myVideoStream.getVideoTracks()[0]);  // Cập nhật track thật cho các peer connections
+            addVideoStream(myVideo, myVideoStream);  // Cập nhật giao diện video
 
-            broadcastData({ type: 'CAMERA_ON' });
+            broadcastData({ type: 'CAMERA_ON' });  // Thông báo bật camera
 
             toggleCamButton.classList.add('active');
             toggleCamButton.classList.remove('inactive');
@@ -415,8 +384,8 @@ const trackMap = new Map();
 // Hàm tạo track video giả
 function createPlaceholderVideoTrack() {
     const canvas = document.createElement('canvas');
-    canvas.width = 1;
-    canvas.height = 1;
+    canvas.width = 100;
+    canvas.height = 100;
 
     const stream = canvas.captureStream();
     const placeholderTrack = stream.getVideoTracks()[0];

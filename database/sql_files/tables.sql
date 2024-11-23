@@ -11,7 +11,7 @@ create table if not exists users (
     password varchar(100)
 );
 
--- Bảng chứa thông tin tài khoản login của người dùng (ngoài tên đăng nhập, người dùng có thể login bằng số điện thoại, email).
+-- Bảng chứa thông tin tài khoản login của người dùng (cho phép login bằng số điện thoại, email, mã sv).
 create table if not exists user_login_id (
 	id int primary key auto_increment,
 	user_id int not null,
@@ -37,22 +37,17 @@ create table if not exists classes (
     name nvarchar(50) not null,
     lecturer_id int not null,
     invite_code_students varchar(36) unique not null, -- Mã mời học viên
-    is_open_students tinyint(1) default 1, -- Trạng thái mở/đóng mã mời học viên
-    invite_code_collaborators varchar(36) unique not null, -- Mã mời cộng tác viên
-    is_open_collaborators tinyint(1) default 1, -- Trạng thái mở/đóng mã mời cộng tác viên
+    is_open_students tinyint(1) default 1, -- Trạng thái mở/đóng của mã mời học viên
     foreign key (lecturer_id) references lecturers(id) -- on delete cascade -- *Chưa cần sử dụng đến
 );
 
 -- Bảng chứa thông tin về cộng tác viên của lớp học.
 create table if not exists class_collaborators (
     id int primary key auto_increment,
-    class_id int not null, -- Khóa ngoại đến lớp học
-    lecturer_id int not null, -- Khóa ngoại đến giảng viên (lecturer)
-    can_manage_students tinyint(1) default 0, -- Quyền quản lý học viên
-    can_manage_documents tinyint(1) default 0, -- Quyền quản lý tài liệu
-    can_manage_exercises tinyint(1) default 0, -- Quyền quản lý bài tập
-    foreign key (class_id) references classes(id) on delete cascade, -- Xóa lớp học thì xóa luôn cộng tác viên
-    foreign key (lecturer_id) references lecturers(id) on delete cascade -- Xóa giảng viên thì xóa luôn cộng tác viên
+    class_id int not null,
+    lecturer_id int not null,
+    foreign key (class_id) references classes(id) on delete cascade,
+    foreign key (lecturer_id) references lecturers(id) -- on delete cascade -- *Chưa cần sử dụng đến
 );
 
 -- Bảng thể hiện mối quan hệ n - n giữa class với student.
