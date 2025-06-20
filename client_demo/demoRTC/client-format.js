@@ -48,7 +48,7 @@ function startApp() {
         if (videoTrack && !trackMap.get(videoTrack)) {
             // Nếu đang bật camera, tắt camera:
             console.log('Tắt camera...');
-            
+    
             // Dừng track video thật
             videoTrack.stop();
             myStream.media.removeTrack(videoTrack);
@@ -58,12 +58,9 @@ function startApp() {
             myStream.media.addTrack(placeholderTrack);
     
             // Cập nhật track cho các peer
-            Object.values(peerConnections).forEach(async peer => {
+            Object.values(peerConnections).forEach(peer => {
                 const sender = peer.getSenders().find(s => s.track.kind === 'video');
-                if (sender) {
-                    await sender.replaceTrack(placeholderTrack);
-                    console.log(sender.track);
-                }
+                if (sender) sender.replaceTrack(placeholderTrack);
             });
     
             console.log('Camera đã tắt');
@@ -75,10 +72,8 @@ function startApp() {
                 const stream = await requestUserMedia({ video: true });
                 const newVideoTrack = stream.getVideoTracks()[0];
     
-                // Dừng track giả và thay thế bằng track thật
-                myStream.media.getVideoTracks().forEach(track => {
-                    myStream.media.removeTrack(track);
-                });
+                // Thay thế track giả bằng track thật
+                myStream.media.getVideoTracks().forEach(track => myStream.media.removeTrack(track));
                 myStream.media.addTrack(newVideoTrack);
     
                 // Cập nhật track cho các peer
@@ -94,80 +89,30 @@ function startApp() {
             }
         }
     });
-
-    // toggleCamBtn.addEventListener('click', async () => {
-    //     const videoTrack = myStream.media.getVideoTracks()[0];
     
-    //     if (videoTrack && !trackMap.get(videoTrack)) {
-    //         // Nếu đang bật camera, tắt camera bằng cách thay thế bằng track giả
-    //         const placeholderTrack = faker().createPlaceholderVideoTrack();
-    //         myStream.media.removeTrack(videoTrack);
-    //         myStream.media.addTrack(placeholderTrack);
-    
-    //         // Cập nhật track cho các peer
-    //         Object.values(peerConnections).forEach(peer => {
-    //             const sender = peer.getSenders().find(s => s.track.kind === 'video');
-    //             if (sender) sender.replaceTrack(placeholderTrack);
-    //         });
-    
-    //         console.log('Camera đã tắt');
-    //         view.toggleCamBtn.classList.add('inactive'); // Cập nhật giao diện
-    //     } else {
-    //         try {
-    //             // Nếu đang tắt camera (track giả), bật camera bằng track thật
-    //             const stream = await requestUserMedia({ video: true });
-    //             const newVideoTrack = stream.getVideoTracks()[0];
-    
-    //             // Thay thế track giả bằng track thật
-    //             myStream.media.getVideoTracks().forEach(track => myStream.media.removeTrack(track));
-    //             myStream.media.addTrack(newVideoTrack);
-    
-    //             // Cập nhật track cho các peer
-    //             Object.values(peerConnections).forEach(peer => {
-    //                 const sender = peer.getSenders().find(s => s.track.kind === 'video');
-    //                 if (sender) sender.replaceTrack(newVideoTrack);
-    //             });
-    
-    //             console.log('Camera đã bật');
-    //             view.toggleCamBtn.classList.remove('inactive'); // Cập nhật giao diện
-    //         } catch (error) {
-    //             console.error('Không thể bật camera:', error);
-    //         }
-    //     }
-    // });
-
+    // Logic tương tự cho toggleMicBtn
     toggleMicBtn.addEventListener('click', async () => {
         const audioTrack = myStream.media.getAudioTracks()[0];
     
         if (audioTrack && !trackMap.get(audioTrack)) {
-            // Nếu đang bật micro, tắt micro bằng cách vô hiệu hóa track
             audioTrack.enabled = !audioTrack.enabled;
-    
-            if (audioTrack.enabled) {
-                console.log('Micro đã bật');
-                view.toggleMicBtn.classList.remove('inactive'); // Cập nhật giao diện
-            } else {
-                console.log('Micro đã tắt');
-                view.toggleMicBtn.classList.add('inactive'); // Cập nhật giao diện
-            }
+            view.toggleMicBtn.classList.toggle('inactive', !audioTrack.enabled);
+            console.log(audioTrack.enabled ? 'Micro đã bật' : 'Micro đã tắt');
         } else {
             try {
-                // Nếu đang tắt micro (track giả), bật micro bằng track thật
                 const stream = await requestUserMedia({ audio: true });
                 const newAudioTrack = stream.getAudioTracks()[0];
     
-                // Thay thế track giả bằng track thật
                 myStream.media.getAudioTracks().forEach(track => myStream.media.removeTrack(track));
                 myStream.media.addTrack(newAudioTrack);
     
-                // Cập nhật track cho các peer
                 Object.values(peerConnections).forEach(peer => {
                     const sender = peer.getSenders().find(s => s.track.kind === 'audio');
                     if (sender) sender.replaceTrack(newAudioTrack);
                 });
     
                 console.log('Micro đã bật');
-                view.toggleMicBtn.classList.remove('inactive'); // Cập nhật giao diện
+                view.toggleMicBtn.classList.remove('inactive');
             } catch (error) {
                 console.error('Không thể bật micro:', error);
             }
@@ -175,73 +120,70 @@ function startApp() {
     });
 
     shareScreenBtn.addEventListener('click', async () => {
-        const videoTrack = myStream.media.getVideoTracks()[0];
-
-        if (!trackMap.get(videoTrack)) {
-            try {
-                // Bắt đầu chia sẻ màn hình
-                console.log('Đang bắt đầu chia sẻ màn hình...');
-                const screenStream = await requestUserDisplayMedia({ video: true });
-                const screenTrack = screenStream.getVideoTracks()[0];
-
-                // Thay thế track video (dù là track thật hay giả) bằng track màn hình
-                myStream.media.removeTrack(videoTrack);
-                myStream.media.addTrack(screenTrack);
-
-                // Cập nhật track chia sẻ màn hình cho các peer
-                Object.values(peerConnections).forEach(peer => {
-                    const sender = peer.getSenders().find(s => s.track.kind === 'video');
-                    if (sender) sender.replaceTrack(screenTrack);
-                });
-
-                console.log('Đã bắt đầu chia sẻ màn hình');
-                view.shareScreenBtn.classList.add('active'); // Cập nhật giao diện
-                view.toggleCamBtn.disabled = true; // Vô hiệu hóa nút toggle camera
-
-                // Khi dừng chia sẻ màn hình
-                screenTrack.onended = async () => {
-                    console.log('Dừng chia sẻ màn hình');
-                    view.shareScreenBtn.classList.remove('active'); // Cập nhật giao diện
-                    view.toggleCamBtn.disabled = false; // Bật lại nút toggle camera
-
-                    // Nếu camera đang bật, thay thế bằng track camera
-                    const videoTrack = myStream.media.getVideoTracks()[0];
-                    if (videoTrack && !trackMap.get(videoTrack)) {
-                        try {
-                            const stream = await requestUserMedia({ video: true });
-                            const newVideoTrack = stream.getVideoTracks()[0];
-
-                            myStream.media.removeTrack(videoTrack);
-                            myStream.media.addTrack(newVideoTrack);
-
-                            // Cập nhật track camera cho các peer
-                            Object.values(peerConnections).forEach(peer => {
-                                const sender = peer.getSenders().find(s => s.track.kind === 'video');
-                                if (sender) sender.replaceTrack(newVideoTrack);
-                            });
-
-                            console.log('Quay lại sử dụng camera');
-                        } catch (error) {
-                            console.error('Không thể bật lại camera:', error);
-                        }
-                    } else {
-                        // Nếu camera đang tắt, thay thế bằng track giả
-                        const placeholderTrack = faker().createPlaceholderVideoTrack();
-                        myStream.media.getVideoTracks().forEach(track => myStream.media.removeTrack(track));
-                        myStream.media.addTrack(placeholderTrack);
-
-                        // Cập nhật track giả cho các peer
+        // Lưu trạng thái camera ban đầu
+        const isCameraOn = myStream.media.getVideoTracks().some(track => !trackMap.get(track));
+    
+        try {
+            console.log('Đang bắt đầu chia sẻ màn hình...');
+            const screenStream = await requestUserDisplayMedia({ video: true });
+            const screenTrack = screenStream.getVideoTracks()[0];
+    
+            // Thay thế track hiện tại bằng track màn hình
+            const currentVideoTrack = myStream.media.getVideoTracks()[0];
+            if (currentVideoTrack) myStream.media.removeTrack(currentVideoTrack);
+            myStream.media.addTrack(screenTrack);
+    
+            // Cập nhật track cho các peer
+            Object.values(peerConnections).forEach(peer => {
+                const sender = peer.getSenders().find(s => s.track.kind === 'video');
+                if (sender) sender.replaceTrack(screenTrack);
+            });
+    
+            console.log('Đã bắt đầu chia sẻ màn hình');
+            view.shareScreenBtn.classList.add('active');
+            view.toggleCamBtn.disabled = true; // Vô hiệu hóa nút toggle camera
+    
+            // Lắng nghe sự kiện khi dừng chia sẻ màn hình
+            screenTrack.onended = async () => {
+                console.log('Dừng chia sẻ màn hình');
+                view.shareScreenBtn.classList.remove('active');
+                view.toggleCamBtn.disabled = false;
+    
+                // Phục hồi trạng thái camera ban đầu
+                if (isCameraOn) {
+                    try {
+                        const stream = await requestUserMedia({ video: true });
+                        const newVideoTrack = stream.getVideoTracks()[0];
+    
+                        myStream.media.removeTrack(screenTrack);
+                        myStream.media.addTrack(newVideoTrack);
+    
+                        // Cập nhật track camera cho các peer
                         Object.values(peerConnections).forEach(peer => {
                             const sender = peer.getSenders().find(s => s.track.kind === 'video');
-                            if (sender) sender.replaceTrack(placeholderTrack);
+                            if (sender) sender.replaceTrack(newVideoTrack);
                         });
-
-                        console.log('Quay lại sử dụng track giả');
+    
+                        console.log('Quay lại sử dụng camera');
+                    } catch (error) {
+                        console.error('Không thể bật lại camera:', error);
                     }
-                };
-            } catch (error) {
-                console.error('Không thể chia sẻ màn hình:', error);
-            }
+                } else {
+                    // Nếu camera ban đầu đang tắt, thay thế bằng track giả
+                    const placeholderTrack = faker().createPlaceholderVideoTrack();
+                    myStream.media.removeTrack(screenTrack);
+                    myStream.media.addTrack(placeholderTrack);
+    
+                    Object.values(peerConnections).forEach(peer => {
+                        const sender = peer.getSenders().find(s => s.track.kind === 'video');
+                        if (sender) sender.replaceTrack(placeholderTrack);
+                    });
+    
+                    console.log('Quay lại sử dụng track giả');
+                }
+            };
+        } catch (error) {
+            console.error('Không thể chia sẻ màn hình:', error);
         }
     });
 
@@ -379,11 +321,10 @@ function handleUIForNewTrack(userId, stream) {
         const video = document.createElement('video');
         video.id = videoElementId;
         addVideoStream(video, stream);
-    } 
-    // else {
-    //     const video = document.getElementById(videoElementId);
-    //     video.srcObject = stream;
-    // }
+    } else {
+        const video = document.getElementById(videoElementId);
+        video.srcObject = stream;
+    }
 }
 
 /**

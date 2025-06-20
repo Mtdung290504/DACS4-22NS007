@@ -232,3 +232,119 @@ body {
 #toggle-attendees-button::after {
     background-image: url('../assets/icons/attendees.png');
 }
+
+/* Thêm media query để xử lý màn hình nhỏ */
+@media (max-width: 768px) {
+    /* Điều chỉnh padding của body để không chiếm quá nhiều không gian */
+    body {
+        padding: 10px 2%;
+    }
+
+    /* Điều chỉnh #video-grid-wrapper để phù hợp với không gian nhỏ hơn */
+    #video-grid-wrapper {
+        padding: 5px;
+        margin-right: 0!important;
+    }
+
+    /* Giảm số lượng cột trong lưới video khi màn hình nhỏ */
+    #video-grid {
+        grid-template-columns: repeat(2, 1fr); /* 2 cột thay vì 4 */
+        row-gap: .3em;
+        column-gap: .3em;
+    }
+
+    /* Đảm bảo video chiếm không gian hợp lý trên màn hình nhỏ */
+    .video-wrapper {
+        aspect-ratio: 16 / 9;
+        border-radius: 5px;
+    }
+
+    /* Khi bật chế độ chat, thu hẹp video lưới */
+    body:has(#chat-panel.open) > #video-grid-wrapper > #video-grid {
+        grid-template-columns: repeat(2, 1fr); /* Chỉ hiển thị 1 cột video */
+    }
+
+    /* Điều chỉnh thanh công cụ */
+    #controls {
+        width: 100%;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        translate: 0 0;
+        padding: 0.5em;
+        gap: 0.5em;
+        box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.7);
+    }
+
+    .control-button {
+        height: 2.5em;
+        aspect-ratio: 1;
+        margin: 0 auto;
+    }
+
+    /* Điều chỉnh kích thước chat panel và đảm bảo ẩn hoàn toàn khi không mở */
+    #chat-panel {
+        width: 100vw;
+        height: 75dvh;
+        top: auto;
+        bottom: 0;
+        right: 0;
+        position: fixed;
+        transform: translateY(100%);
+        transition: transform 0.3s ease;
+        z-index: 110;
+    }
+
+    /* Khi mở, trượt lên để hiện */
+    #chat-panel.open {
+        transform: translateY(-20%);
+    }
+
+    /* Điều chỉnh header trong panel chat */
+    #chat-header {
+        padding: 0.8em;
+        font-size: 1em;
+    }
+
+    /* Nội dung chat */
+    #chat-content {
+        padding: 0.5em;
+        font-size: 0.9em;
+    }
+
+    /* Input chat */
+    #chat-input {
+        padding: 0.5em;
+        gap: 0.5em;
+    }
+
+    #chat-text {
+        font-size: 0.9em;
+    }
+
+    #chat-send {
+        height: 2.5em;
+        aspect-ratio: 1;
+    }
+}
+
+/* Media query cho màn hình siêu nhỏ (dưới 480px) */
+@media (max-width: 480px) {
+
+    /* Nút điều khiển nhỏ gọn hơn */
+    .control-button {
+        height: 2em;
+        aspect-ratio: 1;
+    }
+
+    #controls {
+        padding: 0.3em;
+        gap: 0.3em;
+    }
+
+    /* Popup nhỏ gọn hơn */
+    .popup-message {
+        font-size: 0.8rem;
+        padding: 0.8rem;
+    }
+}
